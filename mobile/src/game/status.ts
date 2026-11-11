@@ -37,6 +37,13 @@ export function isProcessing(s: Submission, threshold = 0.9): boolean {
 export const EXERCISE_NAME: Record<string, string> = { SQUAT: '스쿼트' };
 export const SKILL_NAME: Record<string, string> = { SQUAT: '충격파 스톰프' }; // 시연 문구 (PRD 2절 5단계)
 
+// 운동 부위 → 공격 동작. 상체 운동은 주먹, 하체 운동은 발차기 [제안].
+// MVP 운동은 스쿼트(하체)뿐이라 지금은 발차기만 나온다. 푸시업 등은 MVP 제외(mvp-scope.md)라 부위만 미리 적어 둠
+export const EXERCISE_BODY: Record<string, 'UPPER' | 'LOWER'> = { SQUAT: 'LOWER', LUNGE: 'LOWER', PUSHUP: 'UPPER', PULLUP: 'UPPER' };
+export type AttackKind = 'PUNCH' | 'KICK';
+export const attackKindOf = (exerciseCode: string): AttackKind => EXERCISE_BODY[exerciseCode] === 'UPPER' ? 'PUNCH' : 'KICK';
+export const ATTACK_LABEL: Record<AttackKind, string> = { PUNCH: '주먹', KICK: '발차기' };
+
 export function kstDateTime(iso: string): string {
   const d = new Date(new Date(iso).getTime() + 9 * 3600 * 1000);
   const p = (n: number) => String(n).padStart(2, '0');

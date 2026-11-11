@@ -64,3 +64,12 @@ describe('US-03·06·07 제출 상태에 따른 화면 행동', () => {
     assert.equal(flowIndex('REWARDED'), 3);
   });
 });
+
+describe('US-05 리플레이 공격 동작', () => {
+  it('하체 운동(스쿼트)은 발차기, 상체 운동은 주먹', async () => {
+    const { attackKindOf } = await import('../src/game/status');
+    assert.equal(attackKindOf('SQUAT'), 'KICK');
+    assert.equal(attackKindOf('PUSHUP'), 'PUNCH');
+    assert.equal(attackKindOf('UNKNOWN'), 'KICK');
+  });
+});

@@ -8,7 +8,7 @@ import { AccessibilityInfo, Animated, Easing, Image, Pressable, StyleSheet, Text
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { game } from '../../src/auth/session';
 import { attackOf, monsterOf } from '../../src/game/assets';
-import { EXERCISE_NAME, SKILL_NAME, hoursLeft } from '../../src/game/status';
+import { ATTACK_LABEL, EXERCISE_NAME, SKILL_NAME, attackKindOf, hoursLeft } from '../../src/game/status';
 import { Bar, Card, ErrorBox, Loading, Muted, OB, Page, SectionTitle, Stat, TopBar, useLoad } from '../../src/game/ui';
 import { PillButton } from '../../src/onboarding/ui';
 import { COLORS } from '../../src/theme/tokens';
@@ -34,7 +34,7 @@ export default function Result() {
   const target = targetType === 'BOSS' || targetType === 'DUNGEON' ? { type: targetType as 'BOSS' | 'DUNGEON', id: targetId } : null;
 
   if (view === 'replay') return <Replay hits={data.result.card.hitCount} damage={data.result.card.totalDamage} skill={SKILL_NAME[data.result.card.exerciseCode] ?? '공격'}
-    attack={attackOf(data.character.avatarId)} monster={monsterOf(target)} onDone={() => setView('card')} />;
+    attack={attackOf(data.character.avatarId, data.result.card.exerciseCode)} kind={ATTACK_LABEL[attackKindOf(data.result.card.exerciseCode)]} monster={monsterOf(target)} onDone={() => setView('card')} />;
 
   const { card, narrative, formComment } = data.result;
   const protectEnd = data.reward?.protectionEndsAt;
@@ -84,7 +84,7 @@ export default function Result() {
   </Page>;
 }
 
-function Replay({ hits, damage, skill, attack, monster, onDone }: { hits: number; damage: number; skill: string; attack: number; monster: number; onDone: () => void }) {
+function Replay({ hits, damage, skill, kind, attack, monster, onDone }: { hits: number; damage: number; skill: string; kind: string; attack: number; monster: number; onDone: () => void }) {
   const [combo, setCombo] = useState(0);
   const per = Math.min(650, Math.floor(MAX_MS / Math.max(hits, 1)));
   const dmgPerHit = Math.round(damage / Math.max(hits, 1));
@@ -117,7 +117,7 @@ function Replay({ hits, damage, skill, attack, monster, onDone }: { hits: number
   const hp = Math.max(0, 1 - combo / Math.max(hits, 1));
   return <SafeAreaView style={styles.replay} edges={['top', 'bottom']}>
     <View style={styles.replayTop}>
-      <Text style={styles.replayTitle}>{skill}</Text>
+      <View><Text style={styles.replayTitle}>{skill}</Text><Text style={styles.replayKind}>{kind} 공격</Text></View>
       <Pressable accessibilityRole="button" accessibilityLabel="리플레이 건너뛰기" onPress={onDone} style={styles.skip}><Text style={styles.skipText}>스킵 ›</Text></Pressable>
     </View>
     <View style={styles.enemyHp}><Bar value={hp * 100} max={100} color={COLORS.danger} height={8} label="적 체력" /></View>
@@ -126,7 +126,7 @@ function Replay({ hits, damage, skill, attack, monster, onDone }: { hits: number
       <View style={styles.floor} />
       <Animated.Image source={monster} resizeMode="contain" accessibilityLabel="적"
         style={[styles.stageMonster, { transform: [{ translateX: shake.interpolate({ inputRange: [-1, 1], outputRange: [-10, 10] }) }], opacity: combo >= hits ? 0.35 : 1 }]} />
-      <Animated.Image source={attack} resizeMode="contain" accessibilityLabel="내 캐릭터가 공격"
+      <Animated.Image source={attack} resizeMode="contain" accessibilityLabel={`내 캐릭터가 ${kind}로 공격`}
         style={[styles.stageHero, { transform: [{ translateX: lunge.interpolate({ inputRange: [0, 1], outputRange: [0, 40] }) }] }]} />
       {combo > 0 && <Animated.Text style={[styles.dmg, {
         opacity: pop.interpolate({ inputRange: [0, 0.2, 1], outputRange: [0, 1, 0] }),
@@ -161,13 +161,14 @@ const styles = StyleSheet.create({
   replay: { flex: 1, backgroundColor: '#000', paddingHorizontal: 20 },
   replayTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 52 },
   replayTitle: { color: COLORS.text, fontSize: 18, fontWeight: '700' },
+  replayKind: { color: COLORS.primary, fontSize: 12, fontWeight: '600', marginTop: 2 },
   skip: { minHeight: 44, paddingHorizontal: 16, borderRadius: 999, backgroundColor: OB.surfaceRaised, justifyContent: 'center' },
   skipText: { color: COLORS.text, fontWeight: '700' },
   enemyHp: { marginTop: 8 },
   stage: { flex: 1, justifyContent: 'center' },
   floor: { position: 'absolute', left: -20, right: -20, bottom: '18%', height: 2, backgroundColor: '#B9FD5033' },
   stageMonster: { position: 'absolute', right: -10, bottom: '17%', width: '56%', height: '56%' },
-  stageHero: { position: 'absolute', left: -24, bottom: '13%', width: '74%', height: '46%' },
+  stageHero: { position: 'absolute', left: -8, bottom: '16%', width: '58%', height: '44%' },
   dmg: { position: 'absolute', right: '22%', top: '22%', color: COLORS.warning, fontSize: 34, fontWeight: '900' },
   comboBox: { alignItems: 'center', marginBottom: 8 },
   comboBig: { color: COLORS.primary, fontSize: 84, lineHeight: 90, fontWeight: '900' },

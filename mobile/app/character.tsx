@@ -1,6 +1,6 @@
 // 캐릭터: 레벨·경험치(확정/확정 대기), 잠긴 아이템, 지급 내역, 로그아웃 (JN-010·021, US-04, API-007·043·044)
 import { useRouter } from 'expo-router';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { api, game, logout } from '../src/auth/session';
 import { avatarImageOf } from '../src/game/assets';
 import { hoursLeft, kstDateTime } from '../src/game/status';
@@ -19,7 +19,18 @@ export default function CharacterPage() {
   const { me, c, items, rewards } = data;
   const total = c.exp.confirmed + c.exp.pending;
 
+  const signOut = () => Alert.alert('로그아웃할까요?', '다시 들어오려면 이메일과 비밀번호를 입력해야 해요.', [
+    { text: '취소', style: 'cancel' },
+    { text: '로그아웃', style: 'destructive', onPress: async () => { await logout(); if (router.canDismiss()) router.dismissAll(); router.replace('/'); } },
+  ]);
+
   return <Page tab onRefresh={reload} refreshing={refreshing}>
+    <View style={styles.topRow}>
+      <Text style={styles.topTitle}>내 캐릭터</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel="로그아웃" onPress={signOut} style={styles.logout} hitSlop={6}>
+        <Text style={styles.logoutText}>로그아웃</Text>
+      </Pressable>
+    </View>
     <View style={styles.hero}>
       <View style={styles.glow} />
       <Image source={avatarImageOf(c.avatarId)} style={styles.avatar} resizeMode="contain" accessibilityLabel="내 캐릭터" />
@@ -57,12 +68,16 @@ export default function CharacterPage() {
       <Text style={styles.go}>›</Text>
     </Card>)}
 
-    <PillButton title="로그아웃" variant="text" onPress={async () => { await logout(); router.replace('/'); }} />
+    <PillButton title="로그아웃" variant="secondary" onPress={signOut} />
   </Page>;
 }
 
 const styles = StyleSheet.create({
-  hero: { alignItems: 'center', paddingTop: 12, gap: 6 },
+  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
+  topTitle: { color: COLORS.text, fontSize: 20, fontWeight: '700' },
+  logout: { minHeight: 40, paddingHorizontal: 16, borderRadius: 999, borderWidth: 1, borderColor: OB.line, justifyContent: 'center' },
+  logoutText: { color: OB.mutedStrong, fontSize: 14, fontWeight: '600' },
+  hero: { alignItems: 'center', paddingTop: 0, gap: 6 },
   glow: { position: 'absolute', top: 40, width: 240, height: 240, borderRadius: 120, backgroundColor: '#B9FD5018' },
   avatar: { width: 220, height: 280 },
   level: { backgroundColor: COLORS.primary, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 4, marginTop: -10 },

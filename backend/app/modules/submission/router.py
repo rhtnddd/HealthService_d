@@ -9,11 +9,12 @@ import uuid
 from datetime import date
 
 
-from fastapi import APIRouter, Body, Depends, Header, Query, Response
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, Header, Query, Response
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.core.errors import AppError
+from app.modules import pipeline
 from app.modules.auth.dependencies import get_current_user
 from app.modules.auth.models import User
 from app.modules.submission import service
@@ -124,6 +125,7 @@ stub_router = APIRouter(tags=["submission"], responses=_ERRORS_4XX)
 def submit_session(
     id: uuid.UUID,
     body: SubmitRequest,
+    background: BackgroundTasks,
     idempotency_key: uuid.UUID = Header(alias="Idempotency-Key"),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -140,6 +142,8 @@ def submit_session(
         ai_confidence=body.ai_confidence,
     )
     submission = result.submission
+    if pipeline.enabled():
+        background.add_task(pipeline.after_submit, submission.id)
     # 다시 보낸 요청에도 '첫 결과'를 돌려준다: 접수 직후 상태(SUBMITTED, version 0)
     return SubmitResponse(
         submission_id=submission.id,

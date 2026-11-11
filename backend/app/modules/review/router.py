@@ -9,11 +9,12 @@ import uuid
 
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Header, Query, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, Query, Response
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.core.errors import AppError
+from app.modules import pipeline
 from app.modules.review import rules, service
 from app.modules.auth.dependencies import get_current_user
 from app.modules.auth.models import User
@@ -264,6 +265,7 @@ def api_037(
 )
 def api_038(
     id: uuid.UUID,
+    background: BackgroundTasks,
     if_match: str = Header(alias="If-Match"),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -279,6 +281,8 @@ def api_038(
         raise _concurrent_update(e.args[0])
     except service.InvalidState:
         raise AppError(409, "INVALID_STATE", "취소되었거나 이미 처리된 요청입니다.")
+    if pipeline.enabled():
+        background.add_task(pipeline.after_review_approve, s.id)
     return ReviewApproved(
         submission_id=s.id, submission_status=s.status, approval_path=s.approval_path, version=s.version
     )

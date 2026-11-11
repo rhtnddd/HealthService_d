@@ -2,6 +2,7 @@
 // (STACK.md '추가 검증 항목': 안전한 토큰 저장. 저장 방식 최종 결정은 팀 확인 필요).
 import * as SecureStore from 'expo-secure-store';
 import { createAccountApi } from '../api/account';
+import { createGameApi } from '../api/game';
 import { createHttp, type TokenStore, type Tokens } from '../api/http';
 
 const KEY = 'jeonunsi.tokens';
@@ -18,6 +19,7 @@ export const tokenStore: TokenStore = {
 
 export const http = createHttp(tokenStore);
 export const api = createAccountApi(http, tokenStore.set);
+export const game = createGameApi(http);
 
 export async function logout() {
   const saved = await tokenStore.get();

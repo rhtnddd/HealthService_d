@@ -21,6 +21,7 @@ export default function Layout() {
     <Stack.Screen name="review/[id]" options={{ headerShown: false }} />
     <Stack.Screen name="result/[id]" options={{ headerShown: false, gestureEnabled: false }} />
     <Stack.Screen name="dev-login" options={{ headerShown: false, animation: 'none' }} />
+    <Stack.Screen name="dev-logout" options={{ headerShown: false, animation: 'none' }} />
     <Stack.Screen name="workout/[id]" options={{ title: '보상 미리보기' }} />
   </Stack></DraftProvider>;
 }

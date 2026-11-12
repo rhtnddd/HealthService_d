@@ -9,6 +9,7 @@ import { EXERCISE_NAME, FLOW, SKILL_NAME, STATUS_TEXT, canCancel, flowIndex, isP
 import { Card, ErrorBox, Loading, Muted, OB, Page, Stat, StatusChip, TopBar, errorMessage, useLoad } from '../../src/game/ui';
 import { ErrorText, PillButton } from '../../src/onboarding/ui';
 import { COLORS } from '../../src/theme/tokens';
+import { tapButton, useDemoStep, wait } from '../../src/dev/demo';
 
 const STEP_LABEL: Record<string, string> = { SUBMITTED: '접수', PREPARED: '계산', APPROVED: '승인', REWARDED: '지급' };
 
@@ -31,6 +32,12 @@ export default function SubmissionDetail() {
     const t = setInterval(() => void silent(), 1500);
     return () => clearInterval(t);
   }, [processing, silent]);
+
+  // [개발 전용] 시연: 지급이 끝나면 전투 결과로
+  useDemoStep('submission', async () => {
+    await wait(2200); await tapButton('전투 결과 보기');
+    router.push({ pathname: '/result/[id]', params: { id, targetType: targetType ?? '', targetId: targetId ?? '' } });
+  }, data?.s.status === 'REWARDED');
 
   if (loading) return <Page><TopBar title="운동 기록" /><Loading /></Page>;
   if (!data) return <Page><TopBar title="운동 기록" /><ErrorBox message={error ?? '기록을 찾을 수 없어요.'} onRetry={reload} /></Page>;

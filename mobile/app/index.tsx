@@ -6,6 +6,7 @@ import Svg, { G, Path } from 'react-native-svg';
 import { api, tokenStore } from '../src/auth/session';
 import { HttpError } from '../src/api/http';
 import { BodyHero, FadeToBlack, OB, PillButton, ProgressDots, Screen } from '../src/onboarding/ui';
+import { tapButton, useDemoStep, wait } from '../src/dev/demo';
 
 export default function Start() {
   const router = useRouter();
@@ -29,6 +30,9 @@ export default function Start() {
     })();
     return () => { alive = false; };
   }, [router]);
+
+  // [개발 전용] 시연 자동 진행
+  useDemoStep('start', async () => { await wait(1200); await tapButton('시작하기'); router.push('/onboarding/birth'); }, !checking);
 
   return <Screen>
     <Svg width={390} height={420} style={styles.lines} pointerEvents="none">

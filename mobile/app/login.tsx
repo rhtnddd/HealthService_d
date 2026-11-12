@@ -1,6 +1,6 @@
 // 로그인 (시안 '로그인'). API-002 → API-005로 캐릭터 유무를 보고 홈 또는 캐릭터 만들기로 보낸다.
-import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, type ScrollViewInstance, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { HttpError } from '../src/api/http';
 import { api } from '../src/auth/session';
@@ -14,6 +14,8 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const ready = isEmail(email) && password.length > 0;
+  const scrollRef = useRef<ScrollViewInstance>(null);
+  const reveal = () => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 250);
 
   const login = async () => {
     if (!ready || busy) return;
@@ -33,15 +35,15 @@ export default function Login() {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.hero} pointerEvents="none"><BodyHero width={330} height={529} /></View>
       <FadeToBlack top={250} height={300} />
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={scrollRef} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={{ gap: 8 }}>
           <Title>로그인</Title>
           <Sub>다시 오신 것을 <Accent>환영합니다</Accent>.</Sub>
         </View>
         <View style={{ gap: 12 }}>
-          <Field label="이메일" value={email} onChangeText={setEmail} placeholder="you@example.com"
+          <Field onFocus={reveal} label="이메일" value={email} onChangeText={setEmail} placeholder="you@example.com"
             keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email" textContentType="emailAddress" />
-          <Field label="비밀번호" value={password} onChangeText={setPassword} placeholder="비밀번호"
+          <Field onFocus={reveal} label="비밀번호" value={password} onChangeText={setPassword} placeholder="비밀번호"
             secureTextEntry autoCapitalize="none" autoComplete="current-password" textContentType="password" onSubmitEditing={login} />
           <ErrorText>{error}</ErrorText>
         </View>

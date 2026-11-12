@@ -7,6 +7,7 @@ import { api } from '../../src/auth/session';
 import { HttpError } from '../../src/api/http';
 import { AVATARS, useDraft } from '../../src/onboarding/draft';
 import { ErrorText, OB, PillButton, Screen, StepRing, Sub, Title } from '../../src/onboarding/ui';
+import { tapButton, useDemoStep, useLatest, wait } from '../../src/dev/demo';
 
 const ITEM_W = 245;
 const SLOTS = [...AVATARS.map((a) => ({ ...a, locked: false })), { id: 'LOCKED', label: '잠긴 캐릭터', image: AVATARS[0].image, locked: true }];
@@ -44,6 +45,9 @@ export default function Avatar() {
       router.replace('/home');
     }
   };
+
+  const chooseRef = useLatest(choose);
+  useDemoStep('avatar', async () => { await wait(1600); await tapButton('선택'); void chooseRef.current(); });
 
   return <Screen>
     <View style={styles.ring}><StepRing step={index === 0 ? 1 : 2} total={3} /></View>

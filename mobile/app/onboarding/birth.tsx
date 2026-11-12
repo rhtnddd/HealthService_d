@@ -6,6 +6,7 @@ import { useDraft } from '../../src/onboarding/draft';
 import { MIN_SIGNUP_AGE, ageOn, daysInMonth, kstToday, toIsoDate } from '../../src/onboarding/rules';
 import { Accent, BodyHero, FadeToBlack, OB, PillButton, ProgressDots, Screen, Sub, Title } from '../../src/onboarding/ui';
 import { ITEM_H, WheelColumn } from '../../src/onboarding/WheelColumn';
+import { tapButton, useDemoStep, useLatest, wait } from '../../src/dev/demo';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DEFAULT = { year: 2007, month: 4, day: 15 }; // 시안 예시 값
@@ -35,6 +36,14 @@ export default function Birth() {
     update({ birthDate: toIsoDate(date) });
     router.push('/onboarding/gender');
   };
+
+  // [개발 전용] 시연: 연도를 한 칸씩 올려 고른 뒤 계속하기
+  useDemoStep('birth', async () => {
+    for (const y of [2006, 2005]) { await wait(450); set({ year: y }); }
+    await wait(500); set({ month: 3 }); await wait(500); set({ day: 14 });
+    await wait(900); await tapButton('계속하기'); nextRef.current();
+  });
+  const nextRef = useLatest(next);
 
   return <Screen>
     <View style={styles.hero} pointerEvents="none"><BodyHero width={330} height={529} /></View>

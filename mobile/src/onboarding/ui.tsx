@@ -1,6 +1,7 @@
 // 가입 화면 공통 요소. 값은 시안(frontend/design/screens-draft.html, Figma '전운시 표백제' Section 2)에서 옮겼다.
-import type { ReactNode } from 'react';
-import { ActivityIndicator, Image, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps, type ViewStyle } from 'react-native';
+import type { ReactNode, Ref } from 'react';
+import { useDemoTap } from '../dev/demo';
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, TextInput, View, type TextInputInstance, type TextInputProps, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, G, Line, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { COLORS } from '../theme/tokens';
@@ -35,6 +36,7 @@ export function PillButton({ title, onPress, disabled, loading, variant = 'prima
   title: string; onPress: () => void; disabled?: boolean; loading?: boolean; variant?: 'primary' | 'secondary' | 'text'; arrow?: boolean;
 }) {
   const off = disabled || loading;
+  const tapped = useDemoTap(title); // [개발 전용] 데모 자동 입력이 누를 때 눌림 표시
   // NativeWind가 Pressable의 style 함수 결과를 적용하지 않아(시뮬레이터에서 배경이 사라짐) 고정 배열로 넘긴다
   const style = [
     variant === 'primary' && styles.primary,
@@ -42,6 +44,7 @@ export function PillButton({ title, onPress, disabled, loading, variant = 'prima
     variant === 'text' && styles.textButton,
     arrow && styles.arrowPad,
     variant === 'primary' && off && styles.primaryOff,
+    tapped && { opacity: 0.6, transform: [{ scale: 0.96 }] },
   ].filter(Boolean) as ViewStyle[];
   return <Pressable accessibilityRole="button" accessibilityState={{ disabled: !!off, busy: !!loading }} disabled={off} onPress={onPress}
     style={style} android_ripple={{ color: '#00000022', borderless: false }}>
@@ -63,10 +66,10 @@ export function ErrorText({ children }: { children?: string | null }) {
   return <Text accessibilityLiveRegion="polite" style={styles.error}>{children}</Text>;
 }
 
-export function Field({ label, error, variant = 'round', ...input }: TextInputProps & { label: string; error?: string | null; variant?: 'round' | 'box' }) {
+export function Field({ label, error, variant = 'round', inputRef, ...input }: TextInputProps & { label: string; error?: string | null; variant?: 'round' | 'box'; inputRef?: Ref<TextInputInstance> }) {
   return <View style={{ gap: 6 }}>
     <Text style={[styles.label, variant === 'box' && { color: OB.muted }]}>{label}</Text>
-    <TextInput accessibilityLabel={label} placeholderTextColor={OB.dim} {...input}
+    <TextInput ref={inputRef} accessibilityLabel={label} placeholderTextColor={OB.dim} {...input}
       style={[variant === 'round' ? styles.inputRound : styles.inputBox, error ? { borderColor: COLORS.danger } : null]} />
     <ErrorText>{error}</ErrorText>
   </View>;

@@ -1,6 +1,7 @@
 // 회원가입 (시안 'F-01 로그인·가입'). 이메일·비밀번호만 모으고, 실제 가입(API-001)은 닉네임을 받는 이름 단계에서 한다.
-import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, type ScrollViewInstance, type TextInputInstance, View } from 'react-native';
+import { mark, tapButton, typeInto, useDemoStep, useLatest, wait } from '../../src/dev/demo';
 import { useRouter } from 'expo-router';
 import { useDraft } from '../../src/onboarding/draft';
 import { isEmail, isPassword } from '../../src/onboarding/rules';
@@ -23,11 +24,24 @@ export default function Signup() {
     router.push('/onboarding/avatar');
   };
 
+  const scrollRef = useRef<ScrollViewInstance>(null);
+  // 키보드가 올라와도 입력칸이 가려지지 않게 아래로 스크롤한다
+  const reveal = () => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 250);
+  const emailRef = useRef<TextInputInstance>(null);
+  const pwRef = useRef<TextInputInstance>(null);
+  const nextRef = useLatest(next);
+  // [개발 전용] 시연: 이메일·비밀번호를 한 글자씩 입력
+  useDemoStep('signup', async (s) => {
+    emailRef.current?.focus(); await wait(700); mark('signup-type-start'); await typeInto(setEmail, s.email ?? '');
+    await wait(300); pwRef.current?.focus(); await wait(400); await typeInto(setPassword, s.password ?? ''); mark('signup-type-end');
+    await wait(500); Keyboard.dismiss(); await wait(500); await tapButton('계속하기'); nextRef.current();
+  });
+
   return <Screen>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.hero} pointerEvents="none"><BodyHero width={330} height={529} /></View>
       <FadeToBlack top={250} height={300} />
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={scrollRef} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <ProgressDots count={4} active={3} />
         <View style={styles.body}>
           <View style={{ gap: 8, maxWidth: 300 }}>
@@ -35,9 +49,9 @@ export default function Signup() {
             <Sub>두 가지만 알려 주면 <Accent>바로</Accent> 운동을 시작할 수 있습니다.</Sub>
           </View>
           <View style={{ gap: 12 }}>
-            <Field label="이메일" value={email} onChangeText={setEmail} placeholder="you@example.com" error={emailError}
+            <Field inputRef={emailRef} onFocus={reveal} label="이메일" value={email} onChangeText={setEmail} placeholder="you@example.com" error={emailError}
               keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email" textContentType="emailAddress" />
-            <Field label="비밀번호" value={password} onChangeText={setPassword} placeholder="8자 이상" error={passwordError}
+            <Field inputRef={pwRef} onFocus={reveal} label="비밀번호" value={password} onChangeText={setPassword} placeholder="8자 이상" error={passwordError}
               secureTextEntry autoCapitalize="none" autoComplete="new-password" textContentType="newPassword" onSubmitEditing={next} />
           </View>
         </View>

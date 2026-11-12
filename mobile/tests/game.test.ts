@@ -73,3 +73,11 @@ describe('US-05 리플레이 공격 동작', () => {
     assert.equal(attackKindOf('UNKNOWN'), 'KICK');
   });
 });
+
+describe('시연 자동 입력', () => {
+  it('한글은 초성 → 중성 → 종성 순서로 조합된다', async () => {
+    const { typingSteps } = await import('../src/dev/demo');
+    assert.deepEqual(typingSteps('운동'), ['ㅇ', '우', '운', '운ㄷ', '운도', '운동']);
+    assert.deepEqual(typingSteps('a1'), ['a', 'a1']);
+  });
+});

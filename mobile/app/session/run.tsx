@@ -13,6 +13,7 @@ import { LIVENESS_LABEL, buildChunks, demoConfidence, demoRepCounted, poseAt, to
 import { errorMessage, OB } from '../../src/game/ui';
 import { ErrorText, PillButton } from '../../src/onboarding/ui';
 import { COLORS } from '../../src/theme/tokens';
+import { tapButton, useDemoStep, useLatest, wait } from '../../src/dev/demo';
 
 type Phase = 'starting' | 'liveness' | 'counting' | 'paused' | 'submitting' | 'failed';
 type Rep = { ts: number; counted: boolean };
@@ -114,6 +115,10 @@ export default function Run() {
       router.replace({ pathname: '/submission/[id]', params: { id: res.submissionId, targetType: target?.type ?? '', targetId: target?.id ?? '' } });
     } catch (e) { setError(errorMessage(e)); setPhase('failed'); }
   };
+
+  // [개발 전용] 시연: 목표를 채우면 제출
+  const submitRef = useLatest(submit);
+  useDemoStep('run', async () => { await wait(1200); await tapButton('목표 달성! 제출'); void submitRef.current(); }, phase === 'counting' && reps.length >= goal);
 
   const counted = reps.filter((r) => r.counted).length;
   const last = reps[reps.length - 1];

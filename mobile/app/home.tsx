@@ -8,6 +8,7 @@ import { EXERCISE_NAME, STATUS_TEXT, kstDateTime } from '../src/game/status';
 import { Bar, Card, Empty, ErrorBox, Eyebrow, Loading, Muted, OB, Page, SectionTitle, StatusChip, useLoad } from '../src/game/ui';
 import { PillButton } from '../src/onboarding/ui';
 import { COLORS } from '../src/theme/tokens';
+import { tapButton, useDemoStep, wait } from '../src/dev/demo';
 
 export default function Home() {
   const router = useRouter();
@@ -17,6 +18,9 @@ export default function Home() {
     ]);
     return { me, character, dungeon, cap: caps.items.find((c) => c.exerciseCode === 'SQUAT'), subs };
   });
+
+  // [개발 전용] 시연: 홈을 잠깐 보여 준 뒤 운동 시작
+  useDemoStep('home', async () => { await wait(2600); await tapButton('운동 시작하기'); router.push('/session/prepare'); }, !!data);
 
   if (loading) return <Page tab><Loading /></Page>;
   if (!data) return <Page tab><ErrorBox message={error ?? '불러오지 못했어요.'} onRetry={reload} /></Page>;

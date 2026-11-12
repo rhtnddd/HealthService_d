@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import type { Gender } from '../../src/api/account';
 import { useDraft } from '../../src/onboarding/draft';
 import { Accent, BodyHero, FadeToBlack, OB, PillButton, ProgressDots, Screen, Sub, Title } from '../../src/onboarding/ui';
+import { tapButton, useDemoStep, useLatest, wait } from '../../src/dev/demo';
 
 type Choice = Gender | 'NONE';
 const OPTIONS: { value: Choice; label: string }[] = [
@@ -20,6 +21,9 @@ export default function GenderStep() {
     update({ gender: choice === 'MALE' || choice === 'FEMALE' ? choice : null });
     router.push('/onboarding/signup');
   };
+
+  const nextRef = useLatest(next);
+  useDemoStep('gender', async (s) => { await wait(500); setChoice(s.gender ?? 'MALE'); await wait(900); await tapButton('계속하기'); nextRef.current(); });
 
   return <Screen>
     <View style={styles.hero} pointerEvents="none"><BodyHero width={330} height={529} /></View>

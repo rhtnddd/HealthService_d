@@ -1,6 +1,7 @@
 // 캐릭터 이름 (시안 'F-01 캐릭터 이름'). 이 이름이 닉네임. '다음'에서 가입·로그인·캐릭터 생성을 한다.
-import { useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Image, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, type TextInputInstance, View } from 'react-native';
+import { mark, tapButton, typeInto, useDemoStep, useLatest, wait } from '../../src/dev/demo';
 import { useRouter } from 'expo-router';
 import { api } from '../../src/auth/session';
 import { completeSignup } from '../../src/onboarding/complete';
@@ -32,6 +33,13 @@ export default function Name() {
     }
   };
 
+  const nameRef = useRef<TextInputInstance>(null);
+  const nextRef = useLatest(next);
+  useDemoStep('name', async (s) => {
+    nameRef.current?.focus(); await wait(700); mark('name-type-start'); await typeInto(setName, s.nickname ?? ''); mark('name-type-end');
+    await wait(600); Keyboard.dismiss(); await wait(500); await tapButton('다음'); void nextRef.current();
+  });
+
   return <Screen>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
@@ -42,7 +50,7 @@ export default function Name() {
         <View style={styles.preview}>
           <Image source={avatar.image} accessibilityLabel="고른 캐릭터 미리보기" resizeMode="contain" style={{ height: 176, width: 113 }} />
         </View>
-        <Field variant="box" label="이름" value={name} onChangeText={setName} placeholder={`${NAME_MIN}~${NAME_MAX}자`} maxLength={NAME_MAX + 4}
+        <Field inputRef={nameRef} variant="box" label="이름" value={name} onChangeText={setName} placeholder={`${NAME_MIN}~${NAME_MAX}자`} maxLength={NAME_MAX + 4}
           error={touched && !isName(name) ? `이름은 ${NAME_MIN}~${NAME_MAX}자로 지어 주세요.` : null} onSubmitEditing={next} returnKeyType="done" />
         {error && <View style={{ gap: 8 }}>
           <ErrorText>{error.message}</ErrorText>

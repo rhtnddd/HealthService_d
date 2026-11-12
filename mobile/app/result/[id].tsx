@@ -12,6 +12,7 @@ import { ATTACK_LABEL, EXERCISE_NAME, SKILL_NAME, attackKindOf, hoursLeft } from
 import { Bar, Card, ErrorBox, Loading, Muted, OB, Page, SectionTitle, Stat, TopBar, useLoad } from '../../src/game/ui';
 import { PillButton } from '../../src/onboarding/ui';
 import { COLORS } from '../../src/theme/tokens';
+import { tapButton, useDemoStep, wait } from '../../src/dev/demo';
 
 const MAX_MS = 25000; // 30초 이내 (US-05)
 
@@ -28,6 +29,9 @@ export default function Result() {
     void AccessibilityInfo.isReduceMotionEnabled().then((on) => { if (on) setView('card'); });
   }, []);
   useEffect(() => { if (data && data.result.card.hitCount === 0) setView('card'); }, [data]);
+
+  // [개발 전용] 시연: 결과 카드를 보여 준 뒤 홈으로
+  useDemoStep('result', async () => { await wait(4200); await tapButton('홈으로'); router.replace('/home'); }, view === 'card' && !!data);
 
   if (loading) return <Page><TopBar title="전투 결과" /><Loading text="전투 기록을 불러오는 중" /></Page>;
   if (!data) return <Page><TopBar title="전투 결과" /><ErrorBox message={error ?? '전투 결과를 볼 수 없어요.'} onRetry={reload} /></Page>;

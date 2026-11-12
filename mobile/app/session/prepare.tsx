@@ -1,5 +1,5 @@
 // 운동 준비·튜토리얼: 스쿼트 판정 기준·촬영 각도, 운동 부위 실루엣, 목표 횟수·세트, 공략 대상 (JN-012, US-01, DESIGN.md 3절)
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { DEMO_DUNGEON_ID, type Target } from '../../src/api/game';
@@ -8,6 +8,7 @@ import { MONSTERS, MUSCLE_SQUAT } from '../../src/game/assets';
 import { Card, ErrorBox, H1, Loading, Muted, OB, Page, SectionTitle, TopBar, useLoad } from '../../src/game/ui';
 import { PillButton } from '../../src/onboarding/ui';
 import { COLORS } from '../../src/theme/tokens';
+import { tapButton, useDemoStep, wait } from '../../src/dev/demo';
 
 const ANGLE_TEXT: Record<string, string> = { SIDE: '옆에서 전신이 보이게', FRONT: '정면에서 전신이 보이게', DIAGONAL: '45도 옆에서 전신이 보이게' };
 
@@ -22,6 +23,14 @@ export default function Prepare() {
     return { squat: ex.items.find((e) => e.code === 'SQUAT'), cap: caps.items.find((c) => c.exerciseCode === 'SQUAT'), me, dungeon, boss };
   });
 
+  // [개발 전용] 시연: 목표를 30회에서 5회로 줄이고 시작
+  const startRef = useRef<() => void>(() => undefined);
+  useDemoStep('prepare', async () => {
+    await wait(1500);
+    for (let r = 25; r >= 5; r -= 5) { setReps(r); await wait(280); }
+    await wait(800); await tapButton('스쿼트 5회 × 1세트 시작'); startRef.current();
+  }, !!data?.squat);
+
   if (loading) return <Page><TopBar title="운동 준비" /><Loading /></Page>;
   if (!data?.squat) return <Page><TopBar title="운동 준비" /><ErrorBox message={error ?? '운동 정보를 불러오지 못했어요.'} onRetry={reload} /></Page>;
   const { squat, cap, me, dungeon, boss } = data;
@@ -29,6 +38,7 @@ export default function Prepare() {
   const targetValue: Target | null = target === 'BOSS' && boss && me.guildId ? { type: 'BOSS', id: me.guildId } : { type: 'DUNGEON', id: DEMO_DUNGEON_ID };
 
   const start = () => router.push({ pathname: '/session/run', params: { reps: String(reps), sets: String(sets), targetType: targetValue!.type, targetId: targetValue!.id } });
+  startRef.current = start;
 
   return <Page padBottom={80}>
     <TopBar title="운동 준비" />

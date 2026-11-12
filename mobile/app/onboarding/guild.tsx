@@ -1,6 +1,7 @@
 // 길드 가입 (시안 'F-01 길드 가입'). 초대 코드(API-013) 또는 추천 길드([추가] API) 중 하나로 가입. 건너뛸 수 있다.
-import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { mark, tapButton, typeInto, useDemoStep, useLatest, wait } from '../../src/dev/demo';
+import { ActivityIndicator, Keyboard, type TextInputInstance, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import type { RecommendedGuild } from '../../src/api/account';
 import { HttpError } from '../../src/api/http';
@@ -43,6 +44,16 @@ export default function Guild() {
     }
   };
 
+  const codeRef = useRef<TextInputInstance>(null);
+  const joinRef = useLatest(join);
+  useDemoStep('guild', async (s) => {
+    await wait(600); codeRef.current?.focus(); await wait(500);
+    mark('guild-type-start');
+    await typeInto((v) => { setCode(v); if (v) setSelected(null); }, s.inviteCode ?? '');
+    mark('guild-type-end');
+    await wait(600); Keyboard.dismiss(); await wait(500); await tapButton('가입하고 시작'); void joinRef.current();
+  });
+
   return <Screen>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
@@ -50,7 +61,7 @@ export default function Guild() {
           <Title>함께할 길드를 골라요</Title>
           <Sub>애매한 기록은 길드장에게 확인을 요청할 수 있습니다.</Sub>
         </View>
-        <Field variant="box" label="초대 코드" value={code} onChangeText={(v) => { setCode(v); if (v) setSelected(null); }}
+        <Field inputRef={codeRef} variant="box" label="초대 코드" value={code} onChangeText={(v) => { setCode(v); if (v) setSelected(null); }}
           placeholder="길드장에게 받은 코드" autoCapitalize="characters" autoCorrect={false} maxLength={8} error={codeError} />
         <Text style={styles.section}>추천 길드</Text>
         <View style={{ gap: 10 }}>
